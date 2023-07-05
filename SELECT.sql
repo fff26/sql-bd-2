@@ -26,18 +26,14 @@ WHERE artist_id NOT IN (
 );
 
 -- запрос сборников имеющих конкретного исполнителя в составе
--- выдаёт ошибку синтаксиса (примерное положение: ")" - не понимаю почему?!
-SELECT DISTINCT collection_title
-FROM (
-  SELECT *
-  FROM Collections
-  JOIN UNNEST(Collections.track_id) AS track_id
-) AS c
-JOIN Tracks ON c.track_id = Tracks.track_id
-JOIN Albums ON Tracks.album_id = Albums.album_id
-JOIN Artist_albums ON Albums.album_id = Artist_albums.album_id
-JOIN Artists ON Artist_albums.artist_id = Artists.artist_id
-WHERE artist_name LIKE 'Егор Летов';
+SELECT DISTINCT c.collection_title
+FROM Collections c
+JOIN Collection_Tracks ct ON ct.collection_id = c.collection_id
+JOIN Tracks t ON t.track_id = ct.track_id
+JOIN Albums a ON a.album_id = t.album_id
+JOIN Artist_albums aa ON aa.album_id = a.album_id
+JOIN Artists ar ON ar.artist_id = aa.artist_id
+WHERE ar.artist_name = 'Егор Летов';
 
 -- запрос самого длинного трека
 SELECT track_title, track_duration
@@ -65,15 +61,20 @@ WHERE artist_name LIKE '% %' = false;
 -- запрос названий треков со словом мой или my
 SELECT track_title
 FROM Tracks
-WHERE track_title LIKE '%мой%' OR track_title LIKE '%my%' or track_title like 'Мой%' or track_title like 'My%';
-
+WHERE track_title LIKE '% мой %' 
+   OR track_title LIKE '% my %' 
+   OR track_title LIKE 'мой %' 
+   OR track_title LIKE 'my %'
+   OR track_title LIKE '% Мой %' 
+   OR track_title LIKE '% My %' 
+   OR track_title LIKE 'Мой %' 
+   OR track_title LIKE 'My %';
+  
 -- запрос названий треков, которые не входят в сборники
-SELECT track_title
-FROM Tracks
-WHERE track_id NOT IN (
-  SELECT UNNEST(track_id) AS track_id
-  FROM Collections
-);
+SELECT t.track_title
+FROM Tracks t
+LEFT JOIN Collection_Tracks ct ON t.track_id = ct.track_id
+WHERE ct.track_id IS NULL;
 
 -- запрос исполнителя/исполнителей написавших самый короткий трек
 SELECT artist_name
