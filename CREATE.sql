@@ -99,3 +99,11 @@ CREATE TRIGGER collection_tracks_trigger
 AFTER INSERT ON Collection_Tracks
 FOR EACH ROW
 EXECUTE FUNCTION update_collection_track_ids();
+
+drop table album_tracks;
+
+alter table albums
+drop column track_id;
+
+alter table collections
+drop column track_id;
